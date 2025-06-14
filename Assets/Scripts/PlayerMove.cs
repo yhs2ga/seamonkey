@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class PlayerMove : MonoBehaviour
 {
+    public int playerHP;
     public float maxSpeed;
     public float jumpPower;
     Rigidbody2D rigid;
@@ -36,6 +37,8 @@ public class PlayerMove : MonoBehaviour
             rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
             isJump = true;
         }
+
+        Debug.Log("Player HP: " + playerHP);
     }
 
     void FixedUpdate()
@@ -71,6 +74,27 @@ public class PlayerMove : MonoBehaviour
         {
             isJump = false;
         }
+
+        if (other.gameObject.CompareTag("Monster")) OnDamaged(1);
+    }
+
+    public void OnDamaged(int damage)
+    {
+        if (gameObject.layer == 8)
+        {
+            gameObject.layer = 9;
+            spr.color = new Color(1, 1, 1, 0.5f);
+            rigid.AddForce(new Vector2(direction * -1, 0) * 7, ForceMode2D.Impulse);
+            playerHP -= damage;
+
+            Invoke("OffDamaged", 2);
+        }
+    }
+
+    void OffDamaged()
+    {
+        gameObject.layer = 8;
+        spr.color = new Color(1, 1, 1, 1);
     }
 
     IEnumerator asdf()
