@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PlayerMove : MonoBehaviour
 {
-    public int playerHP;
+    public static float playerHP = 10;
     public float maxSpeed;
     public float jumpPower;
     Rigidbody2D rigid;
@@ -14,6 +15,8 @@ public class PlayerMove : MonoBehaviour
     private int direction = -1;
     private bool isJump = false;
     private bool isAttack = false;
+    private bool isDamage = false;
+    private float a;
 
     [SerializeField] private GameObject weapon;
 
@@ -28,8 +31,8 @@ public class PlayerMove : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.X) && !isAttack)
         {
             isAttack = true;
-            StartCoroutine(asdf());
-    
+            StartCoroutine(attack());
+
         }
         //Jump
         if (Input.GetButtonDown("Jump") && !isJump)
@@ -38,7 +41,14 @@ public class PlayerMove : MonoBehaviour
             isJump = true;
         }
 
-        Debug.Log("Player HP: " + playerHP);
+        if (isDamage)
+        {
+            a += 2f * Time.deltaTime;
+            spr.color = new Color(1, 1, 1, a);
+            if (a >= 1) isDamage = false;
+        }
+
+        // Debug.Log("Player HP: " + playerHP);
     }
 
     void FixedUpdate()
@@ -78,29 +88,38 @@ public class PlayerMove : MonoBehaviour
         if (other.gameObject.CompareTag("Monster")) OnDamaged(1);
     }
 
-    public void OnDamaged(int damage)
+    public void OnDamaged(float damage)
     {
-        if (gameObject.layer == 8)
+        if (!isDamage)
         {
-            gameObject.layer = 9;
-            spr.color = new Color(1, 1, 1, 0.5f);
-            rigid.AddForce(new Vector2(direction * -1, 0) * 7, ForceMode2D.Impulse);
             playerHP -= damage;
-
-            Invoke("OffDamaged", 2);
+            a = 0.5f;
+            isDamage = true;
         }
     }
 
-    void OffDamaged()
+    // void OffDamaged()
+    // {
+    //     gameObject.layer = 8;
+    //     spr.color = new Color(1, 1, 1, 1);
+    // }
+    
+    IEnumerator OffDamaged()
     {
+        spr.color = Color.Lerp(spr.color, new Color(1, 1, 1, 1), 10 * Time.deltaTime);
+        Debug.Log(spr.color.a);
+        yield return new WaitForSeconds(0.5f);
         gameObject.layer = 8;
-        spr.color = new Color(1, 1, 1, 1);
     }
 
-    IEnumerator asdf()
+    IEnumerator attack()
     {
         weapon.transform.position = new Vector2(weapon.transform.position.x + 1 * direction, weapon.transform.position.y);
+        // yield return new WaitForSeconds(0.05f);
+        weapon.GetComponent<Weapon>().isAttack = "Monster";
+        weapon.GetComponent<Weapon>().damage = 1;
         yield return new WaitForSeconds(0.1f);
+        weapon.GetComponent<Weapon>().isAttack = null;
         weapon.transform.position = new Vector2(weapon.transform.position.x - 1 * direction, weapon.transform.position.y);
         isAttack = false;
     }
