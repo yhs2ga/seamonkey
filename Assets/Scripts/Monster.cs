@@ -69,7 +69,7 @@ public class Monster : MonoBehaviour
                 if (transform.position.x - player.transform.position.x < 0) direction = 1;
                 if (transform.position.x - player.transform.position.x > 0) direction = -1;
 
-                transform.position = new Vector2(transform.position.x + 3f * direction * Time.deltaTime, transform.position.y);
+                transform.position = new Vector2(transform.position.x + 2f * direction * Time.deltaTime, transform.position.y);
                 if (patternTime > 3)
                 {
                     pattern = Random.Range(1, 4);
